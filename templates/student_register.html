@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Student Onboarding | EduMatch{% endblock %}
+
+{% block content %}
+<div class="container py-5 mt-lg-2 animate-fade">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-5">
+            <div class="nebula-card p-5 shadow-lg">
+                <div class="text-center mb-5">
+                    <div class="rounded-circle bg-success-subtle text-success d-inline-flex align-items-center justify-content-center mb-4 shadow-sm" style="width:70px;height:70px;">
+                        <i class="fa-solid fa-user-plus fs-2"></i>
+                    </div>
+                    <h2 class="fw-bold mb-1">Student Registration</h2>
+                    <p class="text-muted small">Start your personalized learning journey</p>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% for field in form %}
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase mb-2 ms-1">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <small class="form-text text-muted x-small ms-1">{{ field.help_text|safe }}</small>
+                        {% endif %}
+                        {% if field.errors %}
+                            <div class="text-danger x-small mt-1 ms-1 fw-bold">{{ field.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <button type="submit" class="btn btn-premium btn-success w-100 py-3 rounded-pill mt-3 fs-5 shadow-sm" style="background: linear-gradient(135deg, var(--success), #059669);">
+                        <i class="fa-solid fa-rocket me-2 text-white"></i>Create My Account
+                    </button>
+
+                    <div class="text-center mt-5 pt-3 border-top">
+                        <p class="small text-muted mb-2">Are you a teacher looking to join?</p>
+                        <a href="{% url 'tutor_register' %}" class="small text-primary fw-bold text-decoration-none">Register as Tutor instead</a>
+                        <p class="small text-muted mt-3 mb-0">Already have an account? <a href="{% url 'login' %}" class="text-primary fw-bold text-decoration-none">Login</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Add background image to body matching the landing page */
+    body::before {
+        display: none !important;
+    }
+    body {
+        background-image: url('{% static "images/hero_simple.png" %}');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        position: relative;
+    }
+    
+    /* Overlay for readability */
+    body::after {
+        content: '';
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.75) 0%, rgba(30, 27, 75, 0.8) 100%);
+        z-index: -1;
+    }
+    
+    /* Ensure the cards look premium on this background */
+    .nebula-card {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(20px);
+    }
+</style>
+
+<script>
+    // Style registration inputs
+    document.querySelectorAll('input, select, textarea').forEach(function(el) {
+        el.classList.add('form-control', 'rounded-pill', 'px-4', 'py-2', 'border-light-subtle', 'shadow-none');
+    });
+</script>
+{% endblock %}

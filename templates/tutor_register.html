@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Apply as Tutor | Become an Educator at EduMatch{% endblock %}
+
+{% block content %}
+<div class="container py-5 mt-lg-2 animate-fade">
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-7">
+            <div class="nebula-card p-5 shadow-lg">
+                <div class="text-center mb-5">
+                    <div class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center mb-4 shadow-sm" style="width:70px;height:70px;">
+                        <i class="fa-solid fa-chalkboard-user fs-2"></i>
+                    </div>
+                    <h2 class="fw-bold mb-1">Tutor Application</h2>
+                    <p class="text-muted small">Join our elite network of educators and share your expertise</p>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="row g-4">
+                        {% for field in form %}
+                            <div class="{% if field.name == 'bio' or field.name == 'subjects' %}col-12{% else %}col-md-6{% endif %}">
+                                <label class="form-label small fw-bold text-muted text-uppercase mb-2 ms-1">{{ field.label }}</label>
+                                
+                                {% if field.name == 'subjects' %}
+                                    <div class="p-4 rounded-4 bg-light border border-light-subtle">
+                                        {% if form.subjects.field.queryset.count == 0 %}
+                                            <p class="text-muted small mb-0 p-3 text-center border border-dashed rounded-3">
+                                                <i class="fa-solid fa-circle-info me-1 text-info"></i>
+                                                Waiting for admin to populate global subject list.
+                                            </p>
+                                        {% else %}
+                                            <div class="row g-3">
+                                                {% for choice in form.subjects %}
+                                                <div class="col-md-6 col-lg-4">
+                                                    <div class="form-check custom-checkbox p-2 rounded-3 border bg-white transition hover-bg">
+                                                        <input class="form-check-input ms-0 me-2" type="checkbox" name="subjects" value="{{ choice.data.value }}" id="sub_{{ choice.data.value }}">
+                                                        <label class="form-check-label x-small fw-semibold text-dark" for="sub_{{ choice.data.value }}">
+                                                            {{ choice.choice_label }}
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    {{ field }}
+                                {% endif %}
+
+                                {% if field.help_text %}
+                                    <small class="form-text text-muted x-small ms-1 mt-2 d-block">{{ field.help_text|safe }}</small>
+                                {% endif %}
+                                {% if field.errors %}
+                                    <div class="text-danger x-small mt-1 ms-1 fw-bold">{{ field.errors|striptags }}</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="alert bg-blue-subtle border-0 rounded-4 p-4 mt-5 d-flex gap-3">
+                        <i class="fa-solid fa-shield-halved fs-3 text-primary"></i>
+                        <div class="small">
+                            <div class="fw-bold text-primary mb-1">Identity Verification</div>
+                            <p class="text-muted mb-0">Your profile will be reviewed by our committee. You'll receive an email confirmation once your verified educator status is active.</p>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-premium w-100 py-3 rounded-pill mt-4 fs-5 shadow-lg">
+                        <i class="fa-solid fa-paper-plane me-2 text-white"></i>Submit Application
+                    </button>
+
+                    <div class="text-center mt-5 pt-3 border-top">
+                        <p class="small text-muted mb-0">Already an active tutor? <a href="{% url 'login' %}" class="text-primary fw-bold text-decoration-none">Log in here</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Add background image to body matching the landing page */
+    body::before {
+        display: none !important;
+    }
+    body {
+        background-image: url('{% static "images/hero_simple.png" %}');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        position: relative;
+    }
+    
+    /* Overlay for readability */
+    body::after {
+        content: '';
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.75) 0%, rgba(30, 27, 75, 0.8) 100%);
+        z-index: -1;
+    }
+    
+    /* Ensure the cards look premium on this background */
+    .nebula-card {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(20px);
+    }
+
+    .bg-blue-subtle { background-color: rgba(99, 102, 241, 0.08); }
+    .hover-bg:hover { background-color: rgba(99, 102, 241, 0.03) !important; border-color: rgba(99, 102, 241, 0.2) !important; }
+    .x-small { font-size: 0.8rem; }
+    
+    input.form-control, textarea.form-control {
+        border-radius: 1rem !important;
+        padding: 0.75rem 1.25rem !important;
+        border-color: #e2e8f0 !important;
+    }
+</style>
+<script>
+    // Style text inputs
+    document.querySelectorAll('input:not([type=checkbox]), textarea').forEach(function(el) {
+        el.classList.add('form-control', 'shadow-none');
+    });
+</script>
+{% endblock %}

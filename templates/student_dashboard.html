@@ -1,0 +1,347 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Student Dashboard | EduMatch{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-soft: #f0f4ff;
+        --secondary-soft: #fdf2f8;
+        --success-soft: #f0fdf4;
+        --card-border: #e2e8f0;
+    }
+
+    body {
+        background-color: #f8fafc;
+    }
+
+    /* Hide the 'My Dashboard' link in the navbar specifically for this page */
+    .navbar-nav .nav-item:has(a[href*="dashboard"]) {
+        display: none !important;
+    }
+
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .card {
+        border: 1px solid var(--card-border);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    }
+
+    .avatar-circle {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #ec4899, #f43f5e);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        color: white;
+        border-radius: 50%;
+        box-shadow: 0 4px 10px rgba(236, 72, 153, 0.2);
+    }
+
+    .cta-card {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+        border: none;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .status-confirmed { background-color: #dcfce7; color: #166534; }
+    .status-completed { background-color: #f1f5f9; color: #475569; }
+    .status-cancelled { background-color: #fee2e2; color: #991b1b; }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .row-fade-out {
+        opacity: 0;
+        transform: translateX(20px);
+        transition: all 0.5s ease;
+    }
+</style>
+
+<div class="container py-4 dashboard-container animate-fade">
+    
+    <!-- Top Row: Profile & CTA -->
+    <div class="row g-4 mb-5">
+        
+        <!-- Profile Card -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm rounded-3 p-4 h-100 bg-white">
+                <div class="text-center mb-4">
+                    <div class="avatar-circle mx-auto mb-3">
+                        {{ user.username|first|upper }}
+                    </div>
+                    <h4 class="fw-bold mb-1 text-dark">{{ user.username }}</h4>
+                    <p class="text-muted small mb-3">{{ user.email }}</p>
+                    
+                    <div class="mb-4">
+                        {% if user.student_profile.fee_paid %}
+                            <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill small fw-bold">
+                                <i class="fa-solid fa-circle-check me-1"></i> Verified Student
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill small fw-bold">
+                                <i class="fa-solid fa-clock me-1"></i> Payment Pending
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="border-top pt-4">
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted small fw-bold text-uppercase">Grade Level</span>
+                        <span class="text-primary fw-bold">{{ user.student_profile.grade_level|default:"Not set" }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted small fw-bold text-uppercase">Total Sessions</span>
+                        <span class="text-dark fw-bold">{{ bookings|length }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA Card -->
+        <div class="col-lg-8">
+            <div class="card cta-card shadow-sm rounded-3 p-5 h-100 d-flex flex-column justify-content-center border-0">
+                <div class="row align-items-center">
+                    <div class="col-md-7 text-start">
+                        <h2 class="fw-bold mb-3">Ready to expand your <span class="text-primary">Horizons</span>?</h2>
+                        <p class="text-muted mb-4 lead">Discover expert tutors across 50+ subjects and book your next 1-on-1 session in just a few clicks.</p>
+                        <a href="{% url 'tutor_list' %}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill fw-bold shadow-sm">
+                            <i class="fa-solid fa-magnifying-glass me-2"></i>Browse All Tutors
+                        </a>
+                    </div>
+                    <div class="col-md-5 d-none d-md-block text-center">
+                        <i class="fa-solid fa-rocket text-primary opacity-25" style="font-size: 8rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Learning Timeline -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm rounded-3 bg-white border-0">
+                <div class="card-header bg-white py-4 px-4 border-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold mb-1 text-dark">Learning Timeline</h5>
+                        <p class="text-muted small mb-0">Track your progress and upcoming tutoring sessions</p>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-light btn-sm border rounded-pill dropdown-toggle px-3" type="button" data-bs-toggle="dropdown">
+                            Recent Bookings
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
+                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="filterTimeline('all', 'All Bookings')">All Bookings</a></li>
+                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="filterTimeline('confirmed', 'Confirmed')">Confirmed</a></li>
+                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="filterTimeline('completed', 'Completed')">Completed</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="px-4 pb-4">
+                    {% if bookings %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" id="timelineTable">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="border-0 ps-3">Educator</th>
+                                        <th class="border-0">Subject</th>
+                                        <th class="border-0">Schedule</th>
+                                        <th class="border-0">Method</th>
+                                        <th class="border-0 text-center">Status</th>
+                                        <th class="border-0 text-end pe-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="timelineBody">
+                                    {% for booking in bookings %}
+                                    <tr data-session-date="{{ booking.session_date|date:'Y-m-d H:i:s' }}" data-booking-id="{{ booking.id }}" 
+                                        data-status="{% if booking.status == 'accepted' %}confirmed{% else %}{{ booking.status }}{% endif %}">
+                                        <td class="ps-3 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold me-3" style="width:36px;height:36px;font-size:0.85rem;">
+                                                    {{ booking.tutor.username|first|upper }}
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold text-dark mb-0">{{ booking.tutor.username }}</div>
+                                                    <div class="text-muted x-small" style="font-size: 0.7rem;">Verified Educator</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-primary border border-primary-subtle fw-medium rounded-pill px-3 py-1">
+                                                {{ booking.subject.name|default:"General" }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="small text-dark fw-semibold mb-0"><i class="fa-regular fa-calendar me-1"></i> {{ booking.session_date|date:"M d, Y" }}</div>
+                                            <div class="text-muted x-small" style="font-size: 0.7rem;"><i class="fa-regular fa-clock me-1"></i> {{ booking.session_date|date:"h:i A" }}</div>
+                                        </td>
+                                        <td>
+                                            <span class="small text-muted fw-bold">
+                                                {% if booking.payment_type == 'cash' %}
+                                                    <i class="fa-solid fa-money-bill-1 me-1 text-success"></i> Cash
+                                                {% elif booking.payment_type == 'upi' %}
+                                                    <i class="fa-solid fa-mobile-screen me-1 text-primary"></i> UPI
+                                                {% else %}
+                                                    <i class="fa-solid fa-credit-card me-1"></i> {{ booking.payment_type|title }}
+                                                {% endif %}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            {% if booking.status == 'accepted' %}
+                                                <span class="status-badge status-confirmed">Confirmed</span>
+                                            {% elif booking.status == 'rejected' %}
+                                                <span class="status-badge status-cancelled">Cancelled</span>
+                                            {% elif booking.status == 'completed' %}
+                                                <span class="status-badge status-completed">Completed</span>
+                                            {% else %}
+                                                <span class="status-badge bg-warning bg-opacity-10 text-warning">{{ booking.status|title }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end pe-3">
+                                            {% if booking.status == 'accepted' %}
+                                                <button class="btn btn-outline-danger btn-sm fw-bold remove-btn" onclick="removeSession(this)">
+                                                    <i class="fa-solid fa-trash-can me-1"></i> Remove
+                                                </button>
+                                            {% else %}
+                                                <span class="text-muted small">No action</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fa-solid fa-calendar-alt text-muted opacity-25 fs-1 mb-3"></i>
+                            <p class="text-muted mb-0">Your learning timeline is empty. Let's start a new journey today!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        autoUpdateStatus();
+    });
+
+    function autoUpdateStatus() {
+        const now = new Date();
+        const rows = document.querySelectorAll('#timelineBody tr');
+        
+        rows.forEach(row => {
+            const sessionDateStr = row.getAttribute('data-session-date');
+            const sessionDate = new Date(sessionDateStr);
+            const statusBadge = row.querySelector('.status-badge');
+            const removeBtn = row.querySelector('.remove-btn');
+            
+            if (sessionDate < now) {
+                // Time has passed -> Mark as completed
+                if (statusBadge && statusBadge.textContent !== 'Cancelled' && statusBadge.textContent !== 'Completed') {
+                    statusBadge.textContent = 'Completed';
+                    statusBadge.className = 'status-badge status-completed';
+                    row.setAttribute('data-status', 'completed'); // Update data attribute for filtering
+                }
+                
+                // Disable/Remove the remove button for past sessions
+                if (removeBtn) {
+                    removeBtn.remove();
+                    const actionCell = row.cells[row.cells.length - 1];
+                    actionCell.innerHTML = '<span class="text-muted small">Completed</span>';
+                }
+            }
+        });
+    }
+
+    function filterTimeline(status, label) {
+        // Update dropdown button text
+        const btn = document.querySelector('.dropdown-toggle');
+        btn.textContent = label;
+
+        const rows = document.querySelectorAll('#timelineBody tr');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const rowStatus = row.getAttribute('data-status');
+            if (status === 'all' || rowStatus === status) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Handle empty state for filtered results
+        const body = document.getElementById('timelineBody');
+        const emptyRowId = 'empty-filter-row';
+        let emptyRow = document.getElementById(emptyRowId);
+
+        if (visibleCount === 0) {
+            if (!emptyRow) {
+                emptyRow = document.createElement('tr');
+                emptyRow.id = emptyRowId;
+                emptyRow.innerHTML = `<td colspan="6" class="text-center py-5 text-muted">No ${label.toLowerCase()} sessions found.</td>`;
+                body.appendChild(emptyRow);
+            } else {
+                emptyRow.style.display = '';
+                emptyRow.innerHTML = `<td colspan="6" class="text-center py-5 text-muted">No ${label.toLowerCase()} sessions found.</td>`;
+            }
+        } else if (emptyRow) {
+            emptyRow.style.display = 'none';
+        }
+    }
+
+    function removeSession(btn) {
+        if (confirm('Are you sure you want to remove this session? This action cannot be undone.')) {
+            const row = btn.closest('tr');
+            
+            // Add fade out animation
+            row.classList.add('row-fade-out');
+            
+            // Visual feedback before removal
+            const statusBadge = row.querySelector('.status-badge');
+            if (statusBadge) {
+                statusBadge.textContent = 'Cancelled';
+                statusBadge.className = 'status-badge status-cancelled';
+            }
+            
+            setTimeout(() => {
+                row.remove();
+                
+                // Check if table is empty
+                const body = document.getElementById('timelineBody');
+                if (body.children.length === 0) {
+                    location.reload(); // Refresh to show empty state
+                }
+                
+                // Show a small toast notification (optional, using standard alert for now)
+                console.log('Session removed successfully');
+            }, 500);
+        }
+    }
+</script>
+{% endblock %}

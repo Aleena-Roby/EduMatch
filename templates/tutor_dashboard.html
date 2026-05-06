@@ -1,0 +1,391 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Tutor Dashboard | EduMatch{% endblock %}
+
+{% block content %}
+<!-- Custom Dashboard CSS -->
+<style>
+    :root {
+        --primary-soft: #f0f4ff;
+        --secondary-soft: #fdf2f8;
+        --success-soft: #f0fdf4;
+        --card-border: #e2e8f0;
+    }
+
+    body {
+        background-color: #f8fafc;
+    }
+
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Hide the 'My Dashboard' link in the navbar specifically for this page */
+    .navbar-nav .nav-item:has(a[href*="dashboard"]) {
+        display: none !important;
+    }
+
+    .card {
+        border: 1px solid var(--card-border);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    }
+
+    .avatar-circle {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        color: white;
+        border-radius: 50%;
+        box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);
+    }
+
+    .stat-icon-bg {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+    }
+
+    .nav-pills .nav-link {
+        color: #64748b;
+        font-weight: 600;
+        border-radius: 50px;
+        padding: 0.5rem 1.5rem;
+    }
+
+    .nav-pills .nav-link.active {
+        background-color: #6366f1;
+        color: white;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f1f5f9;
+    }
+
+    .btn-sm {
+        border-radius: 50px;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+</style>
+
+<div class="container py-4 dashboard-container animate-fade">
+    
+    <!-- Top Row: Profile & Stats -->
+    <div class="row g-4 mb-5">
+        
+        <!-- Profile Card -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm rounded-3 p-4 h-100 bg-white">
+                <div class="text-center mb-4">
+                    <div class="avatar-circle mx-auto mb-3">
+                        {{ user.username|first|upper }}
+                    </div>
+                    <h4 class="fw-bold mb-1 text-dark">{{ user.username }}</h4>
+                    <p class="text-muted small mb-3">{{ user.email }}</p>
+                    
+                    {% if user.tutor_profile.is_approved %}
+                        <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill small fw-bold">
+                            <i class="fa-solid fa-certificate me-1"></i> Verified Elite Tutor
+                        </span>
+                    {% else %}
+                        <span class="badge bg-warning-subtle text-dark px-3 py-2 rounded-pill small fw-bold mb-3">
+                            <i class="fa-solid fa-user-clock me-1 text-warning"></i> Verification Pending
+                        </span>
+                        <div class="alert alert-warning border-0 shadow-sm rounded-3 x-small p-3 text-start">
+                            <i class="fa-solid fa-circle-exclamation me-1"></i>
+                            <strong>Admin Feedback:</strong><br>
+                            {{ user.tutor_profile.rejection_reason|default:"Your application is currently under review. Our team will verify your credentials shortly." }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label class="small fw-bold text-muted text-uppercase mb-2 d-block">Expertise</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for subject in user.tutor_profile.subjects.all %}
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill small">{{ subject.name }}</span>
+                        {% empty %}
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill small">General</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="d-flex align-items-center small text-muted mb-2">
+                        <i class="fa-solid fa-calendar-week me-2 text-primary"></i>
+                        <span>{{ user.tutor_profile.availability|default:"20 hrs/week" }}</span>
+                    </div>
+                    <div class="small text-muted mb-0">
+                        <i class="fa-solid fa-quote-left me-2 text-primary opacity-50"></i>
+                        <span>{{ user.tutor_profile.bio|truncatewords:15|default:"No bio added yet." }}</span>
+                    </div>
+                </div>
+                
+                <div class="mt-auto pt-3 border-top">
+                    <a href="{% url 'edit_tutor_profile' %}" class="btn btn-outline-primary btn-sm w-100 fw-bold">
+                        <i class="fa-solid fa-pen-to-square me-2"></i>Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="col-lg-8">
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <div class="card shadow-sm rounded-3 p-4 bg-white text-center">
+                        <div class="stat-icon-bg bg-primary-subtle text-primary mx-auto mb-3">
+                            <i class="fa-solid fa-inbox fs-4"></i>
+                        </div>
+                        <div class="small text-muted fw-bold text-uppercase mb-1" style="font-size: 0.7rem;">Total Requests</div>
+                        <h2 class="fw-bold text-dark mb-0" id="totalRequests">{{ bookings|length }}</h2>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm rounded-3 p-4 bg-white text-center">
+                        <div class="stat-icon-bg bg-success-subtle text-success mx-auto mb-3">
+                            <i class="fa-solid fa-video fs-4"></i>
+                        </div>
+                        <div class="small text-muted fw-bold text-uppercase mb-1" style="font-size: 0.7rem;">Active Sessions</div>
+                        <h2 class="fw-bold text-dark mb-0" id="activeCount">0</h2>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm rounded-3 p-4 bg-white text-center">
+                        <div class="stat-icon-bg bg-info-subtle text-info mx-auto mb-3">
+                            <i class="fa-solid fa-circle-check fs-4"></i>
+                        </div>
+                        <div class="small text-muted fw-bold text-uppercase mb-1" style="font-size: 0.7rem;">Completed</div>
+                        <h2 class="fw-bold text-dark mb-0" id="completedCount">0</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Session Queue Card -->
+            <div class="card shadow-sm rounded-3 bg-white">
+                <div class="card-header bg-white py-4 px-4 border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="fw-bold mb-1 text-dark">Session Queue</h5>
+                            <p class="text-muted small mb-0">Manage student requests and upcoming sessions</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-4 pb-4">
+                    <ul class="nav nav-pills mb-4 bg-light p-1 rounded-pill d-inline-flex" id="sessionTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="active-tab" data-bs-toggle="pill" data-bs-target="#active" type="button" role="tab">Active</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="history-tab" data-bs-toggle="pill" data-bs-target="#history" type="button" role="tab">History</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="sessionTabsContent">
+                        <!-- Active Tab -->
+                        <div class="tab-pane fade show active" id="active" role="tabpanel">
+                            {% if bookings %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0" id="activeTable">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th class="border-0 ps-3">Student Name</th>
+                                                <th class="border-0">Subject</th>
+                                                <th class="border-0">Target Date</th>
+                                                <th class="border-0 text-center">Status</th>
+                                                <th class="border-0 text-end pe-3">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="activeBody">
+                                            {% for booking in bookings %}
+                                                <tr data-session-date="{{ booking.session_date|date:'Y-m-d H:i:s' }}" data-status="{{ booking.status }}" id="booking-row-{{ booking.id }}">
+                                                    <td class="ps-3 py-3">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="rounded-circle bg-secondary bg-opacity-10 text-secondary d-flex align-items-center justify-content-center fw-bold me-3" style="width:36px;height:36px;font-size:0.85rem;">
+                                                                {{ booking.student.username|first|upper }}
+                                                            </div>
+                                                            <div>
+                                                                <div class="fw-bold text-dark mb-0">{{ booking.student.username }}</div>
+                                                                <div class="text-muted x-small" style="font-size: 0.7rem;">{{ booking.student.email }}</div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-light text-primary border border-primary-subtle fw-medium rounded-pill px-3 py-1">
+                                                            {{ booking.subject.name|default:"General" }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="small text-dark fw-semibold mb-0">{{ booking.session_date|date:"D, M d" }}</div>
+                                                        <div class="text-muted x-small" style="font-size: 0.7rem;">{{ booking.session_date|date:"h:i A" }}</div>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <div class="status-badge-container">
+                                                            {% if booking.status == 'pending' %}
+                                                                <span class="badge bg-warning text-dark bg-opacity-25 px-3 py-2 rounded-pill small fw-bold">New Request</span>
+                                                            {% elif booking.status == 'accepted' %}
+                                                                <span class="badge bg-success text-success bg-opacity-10 px-3 py-2 rounded-pill small fw-bold status-badge">Active</span>
+                                                            {% elif booking.status == 'rejected' %}
+                                                                <span class="badge bg-danger text-danger bg-opacity-10 px-3 py-2 rounded-pill small fw-bold">Rejected</span>
+                                                            {% elif booking.status == 'completed' %}
+                                                                <span class="badge bg-secondary text-secondary bg-opacity-10 px-3 py-2 rounded-pill small fw-bold">Completed</span>
+                                                            {% endif %}
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-end pe-3">
+                                                        {% if booking.status == 'pending' %}
+                                                            <div class="d-flex gap-2 justify-content-end">
+                                                                <a href="{% url 'handle_booking' booking.id 'accept' %}" class="btn btn-success btn-sm fw-bold">Accept</a>
+                                                                <a href="{% url 'handle_booking' booking.id 'reject' %}" class="btn btn-outline-danger btn-sm fw-bold">Decline</a>
+                                                            </div>
+                                                        {% elif booking.status == 'accepted' %}
+                                                            <button class="btn btn-primary btn-sm fw-bold ready-btn" onclick="handleReadyClick(this, '{{ booking.id }}')">Ready</button>
+                                                        {% else %}
+                                                            <span class="text-muted small">No actions</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <i class="fa-solid fa-calendar-minus text-muted opacity-25 fs-1 mb-3"></i>
+                                    <p class="text-muted mb-0">No sessions found.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- History Tab -->
+                        <div class="tab-pane fade" id="history" role="tabpanel">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0" id="historyTable">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="border-0 ps-3">Student Name</th>
+                                            <th class="border-0">Subject</th>
+                                            <th class="border-0">Target Date</th>
+                                            <th class="border-0 text-center">Status</th>
+                                            <th class="border-0 text-end pe-3">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="historyBody">
+                                        <!-- JS will move history items here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="historyEmpty" class="text-center py-5 d-none">
+                                <i class="fa-solid fa-clock-rotate-left text-muted opacity-25 fs-1 mb-3"></i>
+                                <p class="text-muted mb-0">No session history yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        refreshDashboardLogic();
+    });
+
+    function refreshDashboardLogic() {
+        const now = new Date();
+        const rows = document.querySelectorAll('#activeBody tr');
+        const activeBody = document.getElementById('activeBody');
+        const historyBody = document.getElementById('historyBody');
+        
+        let activeCount = 0;
+        let completedCount = 0;
+        
+        rows.forEach(row => {
+            const sessionDateStr = row.getAttribute('data-session-date');
+            const sessionDate = new Date(sessionDateStr);
+            const status = row.getAttribute('data-status');
+            const statusBadge = row.querySelector('.status-badge');
+            const readyBtn = row.querySelector('.ready-btn');
+            
+            let isHistory = false;
+            
+            // 1. Check if it belongs in History
+            if (sessionDate < now || status === 'completed' || status === 'rejected') {
+                isHistory = true;
+            }
+            
+            if (isHistory) {
+                // Update UI for history
+                if (sessionDate < now && status === 'accepted') {
+                    if (statusBadge) {
+                        statusBadge.textContent = 'Completed';
+                        statusBadge.classList.remove('bg-success', 'text-success', 'bg-opacity-10');
+                        statusBadge.classList.add('bg-secondary', 'text-secondary', 'bg-opacity-10');
+                    }
+                    if (readyBtn) {
+                        readyBtn.disabled = true;
+                        readyBtn.classList.add('d-none');
+                    }
+                }
+                
+                // Move to history body
+                historyBody.appendChild(row);
+                
+                if (status === 'accepted' || sessionDate < now) {
+                    completedCount++;
+                }
+            } else {
+                if (status === 'accepted') {
+                    activeCount++;
+                }
+            }
+        });
+        
+        // Update Stats
+        document.getElementById('activeCount').textContent = activeCount;
+        document.getElementById('completedCount').textContent = completedCount;
+        
+        // Handle empty states
+        if (activeBody.children.length === 0) {
+            activeBody.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-muted">No active sessions at the moment.</td></tr>';
+        }
+        if (historyBody.children.length === 0) {
+            document.getElementById('historyEmpty').classList.remove('d-none');
+            document.getElementById('historyTable').classList.add('d-none');
+        } else {
+            document.getElementById('historyEmpty').classList.add('d-none');
+            document.getElementById('historyTable').classList.remove('d-none');
+        }
+    }
+
+    function handleReadyClick(btn, bookingId) {
+        btn.innerHTML = 'Ready ✓';
+        btn.disabled = true;
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-secondary', 'opacity-75');
+        
+        const row = document.getElementById('booking-row-' + bookingId);
+        const badge = row.querySelector('.status-badge');
+        if (badge) {
+            badge.innerHTML = 'Ready';
+            badge.classList.remove('bg-success', 'text-success');
+            badge.classList.add('bg-primary', 'text-primary');
+        }
+    }
+</script>
+{% endblock %}

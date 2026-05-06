@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}Book Your Session | EduMatch{% endblock %}
+
+{% block content %}
+<div class="container py-5 animate-fade">
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-6">
+            
+            <!-- Tutor Summary Card -->
+            <div class="nebula-card p-4 mb-4 border-start border-5 border-primary shadow-sm d-flex align-items-center gap-4">
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" 
+                     style="width:70px;height:70px;min-width:70px;background: linear-gradient(135deg, var(--primary), var(--secondary)); font-size: 1.8rem;">
+                    {{ tutor_profile.user.username|first|upper }}
+                </div>
+                <div>
+                    <h3 class="fw-bold mb-1">Booking with <span class="text-primary">{{ tutor_profile.user.username }}</span></h3>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="small text-muted"><i class="fa-solid fa-clock me-1 text-primary"></i> {{ tutor_profile.availability|default:"Schedule on Request" }}</span>
+                        <span class="small text-muted"><i class="fa-solid fa-star me-1 text-warning"></i> 4.9 Rating</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nebula-card p-5 shadow-lg">
+                <div class="text-center mb-5">
+                    <div class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center mb-4 shadow-sm" style="width:60px;height:60px;">
+                        <i class="fa-solid fa-calendar-check fs-3"></i>
+                    </div>
+                    <h2 class="fw-bold mb-1">Session Details</h2>
+                    <p class="text-muted small">Configure your personalized 1-on-1 learning session</p>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <!-- Subject Selection -->
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase mb-2 ms-1">Learning Subject</label>
+                        <select name="subject" id="subject" class="form-select rounded-pill px-4 py-2 border-light-subtle shadow-none" required onchange="updatePrice()">
+                            <option value="" data-price="0">-- Choose a specialized field --</option>
+                            {% for subject in tutor_profile.subjects.all %}
+                                <option value="{{ subject.id }}" data-price="{{ subject.price }}">{{ subject.name }} (₹{{ subject.price }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Dynamic Price Summary (Nebula Style) -->
+                    <div id="priceSummary" class="nebula-card p-4 text-center d-none mb-5" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2);">
+                        <div class="text-muted small fw-bold text-uppercase mb-2">Investment for Knowledge</div>
+                        <h2 class="fw-bold mb-1 text-success">₹<span id="displayPrice">0.00</span></h2>
+                        <div class="small opacity-75">Payable upon session approval</div>
+                    </div>
+
+                    <!-- Date Selection -->
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase mb-2 ms-1">Session Date & Time</label>
+                        <input type="datetime-local" class="form-control rounded-pill px-4 py-2 border-light-subtle shadow-none" id="session_date" name="session_date" required>
+                    </div>
+
+                    <!-- Payment Method (Grid Style) -->
+                    <div class="mb-5">
+                        <label class="form-label small fw-bold text-muted text-uppercase mb-3 ms-1">Preferred Payment Channel</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="payment_type" id="pay_cash" value="cash" checked>
+                                <label class="btn btn-outline-light text-dark border w-100 rounded-3 p-3 text-start transition" for="pay_cash">
+                                    <i class="fa-solid fa-money-bill-wave me-2 text-success"></i><span class="small fw-bold">Cash</span>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="payment_type" id="pay_upi" value="upi">
+                                <label class="btn btn-outline-light text-dark border w-100 rounded-3 p-3 text-start transition" for="pay_upi">
+                                    <i class="fa-solid fa-mobile-screen-button me-2 text-primary"></i><span class="small fw-bold">Online UPI</span>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="payment_type" id="pay_card" value="card">
+                                <label class="btn btn-outline-light text-dark border w-100 rounded-3 p-3 text-start transition" for="pay_card">
+                                    <i class="fa-solid fa-credit-card me-2 text-info"></i><span class="small fw-bold">Card</span>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="payment_type" id="pay_free" value="free">
+                                <label class="btn btn-outline-light text-dark border w-100 rounded-3 p-3 text-start transition" for="pay_free">
+                                    <i class="fa-solid fa-gift me-2 text-danger"></i><span class="small fw-bold">Demo</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Message -->
+                    <div class="mb-5">
+                        <label class="form-label small fw-bold text-muted text-uppercase mb-2 ms-1">Learning Goals & Context</label>
+                        <textarea class="form-control rounded-4 px-4 py-3 border-light-subtle shadow-none" id="message" name="message" rows="4" placeholder="Briefly describe what you'd like to achieve in this session, any specific topics you're struggling with, or your current level of understanding..."></textarea>
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        <a href="{% url 'tutor_list' %}" class="btn btn-premium-outline w-50 py-3">Cancel</a>
+                        <button type="submit" class="btn btn-premium w-50 py-3">Submit Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updatePrice() {
+        const select = document.getElementById('subject');
+        const summary = document.getElementById('priceSummary');
+        const display = document.getElementById('displayPrice');
+        
+        const selectedOption = select.options[select.selectedIndex];
+        const price = selectedOption.getAttribute('data-price');
+        
+        if (price && price !== '0') {
+            display.innerText = parseFloat(price).toLocaleString('en-IN', {minimumFractionDigits: 2});
+            summary.classList.remove('d-none');
+        } else {
+            summary.classList.add('d-none');
+        }
+    }
+</script>
+
+<style>
+    .btn-check:checked + label {
+        background-color: rgba(99, 102, 241, 0.05) !important;
+        border-color: var(--primary) !important;
+        box-shadow: 0 4px 10px rgba(99, 102, 241, 0.1);
+    }
+    .transition { transition: all 0.2s ease; }
+</style>
+{% endblock %}

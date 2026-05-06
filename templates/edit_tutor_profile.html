@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Edit Educator Profile | EduMatch{% endblock %}
+
+{% block content %}
+<div class="container py-5 animate-fade">
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-7">
+            <div class="nebula-card p-5 shadow-lg">
+                <div class="text-center mb-5">
+                    <div class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center mb-4 shadow-sm" style="width:70px;height:70px;">
+                        <i class="fa-solid fa-user-pen fs-2"></i>
+                    </div>
+                    <h2 class="fw-bold mb-1">Refine Your Profile</h2>
+                    <p class="text-muted small">Update your expertise and availability for potential students</p>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-5">
+                        <label for="bio" class="form-label small fw-bold text-muted text-uppercase mb-2 ms-1">My Biography</label>
+                        <textarea class="form-control rounded-4 px-4 py-3 border-light-subtle shadow-none" id="bio" name="bio" rows="5" placeholder="Share your academic background, teaching experience, and what makes your tutoring sessions unique. Help students understand your value.">{{ profile.bio|default:"" }}</textarea>
+                    </div>
+                    
+                    <div class="mb-5">
+                        <label for="availability" class="form-label small fw-bold text-muted text-uppercase mb-2 ms-1">Available Hours</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3 text-muted">
+                                <i class="fa-solid fa-clock"></i>
+                            </span>
+                            <input type="text" class="form-control rounded-end-pill px-4 py-2 border-light-subtle shadow-none" id="availability" name="availability" placeholder="e.g. Weekdays 5 PM - 9 PM, Weekends varied..." value="{{ profile.availability|default:'' }}">
+                        </div>
+                    </div>
+
+                    <div class="mb-5">
+                        <label class="form-label small fw-bold text-muted text-uppercase mb-3 ms-1 text-primary">Subjects You Specialized In</label>
+                        <div class="p-4 rounded-4 bg-light border border-light-subtle">
+                            {% if subjects %}
+                                <div class="row g-3">
+                                    {% for subject in subjects %}
+                                    <div class="col-md-6">
+                                        <div class="form-check custom-checkbox p-2 rounded-3 border bg-white transition hover-bg">
+                                            <input class="form-check-input ms-0 me-2" type="checkbox" name="subjects" value="{{ subject.id }}" id="subject_{{ subject.id }}" 
+                                            {% if subject.id in selected_subjects %}checked{% endif %}>
+                                            <label class="form-check-label small fw-semibold text-dark" for="subject_{{ subject.id }}">
+                                                {{ subject.name }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-3">
+                                    <p class="text-muted small mb-0"><i class="fa-solid fa-circle-exclamation me-1"></i> No global subjects found. Please contact administration.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-3">
+                        <a href="{% url 'tutor_dashboard' %}" class="btn btn-premium-outline w-50 py-3">Cancel Changes</a>
+                        <button type="submit" class="btn btn-premium w-50 py-3 shadow-lg">Save & Update Profile</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-bg:hover { background-color: rgba(99, 102, 241, 0.03) !important; border-color: rgba(99, 102, 241, 0.2) !important; }
+    .transition { transition: all 0.2s ease; }
+    
+    input.form-control, textarea.form-control {
+        border-radius: 1rem !important;
+        padding-top: 0.75rem !important;
+        padding-bottom: 0.75rem !important;
+    }
+</style>
+{% endblock %}

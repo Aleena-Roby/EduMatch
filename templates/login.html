@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Sign In | EduMatch{% endblock %}
+
+{% block content %}
+<div class="container py-5 mt-lg-5 animate-fade">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="nebula-card p-5 shadow-lg bg-white">
+                <div class="text-center mb-5">
+                    <div class="grad-circle mb-4">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <!-- Removed the "Login" heading to match the clean minimalist screenshot -->
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger border-0 rounded-pill text-center py-2 mb-4 small fw-bold shadow-sm animate-fade" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                            <i class="fa-solid fa-circle-exclamation me-2"></i>
+                            Please enter a correct username and password.
+                        </div>
+                    {% endif %}
+                    
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <div class="custom-pill-input">
+                            <div class="icon-box">
+                                {% if field.name == 'username' %}
+                                    <i class="fa-solid fa-user"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-lock"></i>
+                                {% endif %}
+                            </div>
+                            
+                            {{ field }}
+                            
+                            {% if field.name == 'password' %}
+                                <div class="eye-icon-box" onclick="togglePassword()">
+                                    <i class="fa-solid fa-eye" id="toggleIcon"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% if field.errors %}
+                            <div class="text-danger small mt-1 fw-bold text-center">{{ field.errors|striptags }}</div>
+                        {% endif %}
+                        
+                        {% if field.name == 'password' %}
+                        <div class="text-center mt-2 mb-4">
+                            <a href="{% url 'forgot_password' %}" class="small text-muted fw-bold text-decoration-none">Forgot Password?</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <button type="submit" class="btn btn-premium w-100 py-3 rounded-pill mt-2 fs-5 login-btn">
+                        Login
+                    </button>
+
+                    <div class="text-center mt-5 pt-3 border-top">
+                        <p class="small text-muted mb-0">Don't have an account yet?</p>
+                        <div class="d-flex justify-content-center gap-3 mt-2">
+                            <a href="{% url 'student_register' %}" class="small text-primary fw-bold text-decoration-none">Register as Student</a>
+                            <span class="text-muted opacity-25">|</span>
+                            <a href="{% url 'tutor_register' %}" class="small text-info fw-bold text-decoration-none">Register as Tutor</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Background Image Style */
+    body::before {
+        display: none !important;
+    }
+    body {
+        background-image: url('{% static "images/hero_simple.png" %}');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        position: relative;
+    }
+    
+    /* Overlay for readability */
+    body::after {
+        content: '';
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.75) 0%, rgba(30, 27, 75, 0.8) 100%);
+        z-index: -1;
+    }
+
+    /* Ensure the card has a clean white background to match the inputs */
+    .nebula-card.bg-white {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(20px);
+    }
+
+    /* Top Icon Circle */
+    .grad-circle {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, #e0f2fe 0%, #f3e8ff 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        margin: 0 auto;
+    }
+    
+    .grad-circle i {
+        color: #7c3aed; /* Vibrant purple */
+        font-size: 4rem;
+    }
+
+    /* Pill Input Styling */
+    .custom-pill-input {
+        background-color: white;
+        border-radius: 50px;
+        box-shadow: 0 4px 20px rgba(124, 58, 237, 0.12); /* Soft purple shadow */
+        height: 65px;
+        display: flex;
+        align-items: center;
+        padding: 0 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .custom-pill-input:focus-within {
+        box-shadow: 0 6px 25px rgba(124, 58, 237, 0.25);
+        transform: translateY(-1px);
+    }
+    
+    .custom-pill-input .icon-box {
+        color: #7c3aed; /* Purple icon */
+        font-size: 1.3rem;
+        background: transparent;
+        border: none;
+        width: 50px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .custom-pill-input .form-control {
+        background: transparent !important;
+        border: none !important;
+        color: #4b5563 !important;
+        padding-left: 0.5rem;
+        font-size: 1.1rem;
+        height: 100%;
+        box-shadow: none !important;
+        flex: 1;
+    }
+
+    .custom-pill-input .form-control::placeholder {
+        color: #9ca3af;
+    }
+
+    .custom-pill-input .eye-icon-box {
+        color: #9ca3af; /* Light grey */
+        font-size: 1.2rem;
+        background: transparent;
+        border: none;
+        width: 50px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .custom-pill-input .eye-icon-box:hover {
+        color: #6b7280;
+    }
+
+    /* Smooth hover effect on login button */
+    .login-btn {
+        background: linear-gradient(135deg, #7c3aed, #6366f1) !important;
+        transition: all 0.3s ease;
+        border: none;
+    }
+    .login-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+    }
+
+    /* Hide the native browser eye icon for password inputs to prevent duplicates */
+    input[type="password"]::-ms-reveal,
+    input[type="password"]::-ms-clear {
+        display: none;
+    }
+    input[type="password"]::-webkit-credentials-auto-fill-button {
+        visibility: hidden;
+        display: none !important;
+        pointer-events: none;
+    }
+</style>
+
+<script>
+    // Set placeholders dynamically
+    document.addEventListener("DOMContentLoaded", function() {
+        const inputs = document.querySelectorAll('.custom-pill-input .form-control');
+        inputs.forEach(input => {
+            if(input.name === 'username') input.placeholder = 'Username';
+            if(input.name === 'password') input.placeholder = 'Password';
+        });
+    });
+
+    function togglePassword() {
+        const passwordField = document.getElementById('id_password');
+        const icon = document.getElementById('toggleIcon');
+        
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            passwordField.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+</script>
+{% endblock %}
