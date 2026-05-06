@@ -86,8 +86,8 @@ def admin_dashboard(request):
 
 @login_required
 def approve_tutor(request, tutor_id):
-    if request.user.role != 'admin':
-        return redirect('landing_page')
+    if not (request.user.is_superuser or request.user.role == 'admin'):
+        return redirect('dashboard')
         
     tutor = get_object_or_404(TutorProfile, id=tutor_id)
     tutor.is_approved = True
@@ -98,8 +98,8 @@ def approve_tutor(request, tutor_id):
 
 @login_required
 def toggle_fee(request, student_id):
-    if request.user.role != 'admin':
-        return redirect('landing_page')
+    if not (request.user.is_superuser or request.user.role == 'admin'):
+        return redirect('dashboard')
     profile = get_object_or_404(StudentProfile, id=student_id)
     profile.fee_paid = not profile.fee_paid
     profile.save()
@@ -132,8 +132,8 @@ def add_subject(request):
 
 @login_required
 def update_subject_price(request, subject_id):
-    if request.user.role != 'admin':
-        return redirect('landing_page')
+    if not (request.user.is_superuser or request.user.role == 'admin'):
+        return redirect('dashboard')
     
     from tutor.models import Subject
     subject = get_object_or_404(Subject, id=subject_id)
