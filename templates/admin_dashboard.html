@@ -97,7 +97,7 @@
                                         <th class="text-muted text-uppercase small fw-bold">Subject Expertise</th>
                                         <th class="text-muted text-uppercase small fw-bold">Date Applied</th>
                                         <th class="text-muted text-uppercase small fw-bold">Status</th>
-                                        <th class="text-end pe-4 text-muted text-uppercase small fw-bold">Operations</th>
+
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -132,29 +132,11 @@
                                                 <span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-3 py-2 rounded-pill">Under Review</span>
                                             {% endif %}
                                         </td>
-                                        <td class="text-end pe-4">
-                                            <div class="d-flex justify-content-end gap-2">
-                                                {% if not tutor.is_approved %}
-                                                    <a href="{% url 'approve_tutor' tutor.id %}" class="btn btn-success btn-sm rounded-pill px-3 fw-bold">
-                                                        <i class="fa-solid fa-check me-1"></i>Approve
-                                                    </a>
-                                                    <a href="{% url 'reject_tutor' tutor.id %}" class="btn btn-outline-warning btn-sm rounded-pill px-3 fw-bold" onclick="return confirm('Reject this application?')">
-                                                        <i class="fa-solid fa-xmark me-1"></i>Reject
-                                                    </a>
-                                                {% else %}
-                                                    <button class="btn btn-light text-muted border btn-sm rounded-pill px-3 disabled">
-                                                        <i class="fa-solid fa-check-double me-1"></i>Approved
-                                                    </button>
-                                                {% endif %}
-                                                <a href="{% url 'delete_tutor' tutor.id %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold" onclick="return confirm('Permanently remove this tutor and their account?')">
-                                                    <i class="fa-solid fa-trash-can me-1"></i>Remove
-                                                </a>
-                                            </div>
-                                        </td>
+
                                     </tr>
                                     {% empty %}
                                     <tr>
-                                        <td colspan="5" class="text-center py-5">
+                                        <td colspan="4" class="text-center py-5">
                                             <div class="text-muted">No tutors found in system records.</div>
                                         </td>
                                     </tr>
