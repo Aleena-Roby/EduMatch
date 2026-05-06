@@ -108,6 +108,25 @@ def toggle_fee(request, student_id):
     return redirect('admin_dashboard')
 
 @login_required
+def add_subject(request):
+    if request.user.role != 'admin':
+        return redirect('landing_page')
+    
+    if request.method == 'POST':
+        from tutor.models import Subject
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        price = request.POST.get('price')
+        
+        if name and price:
+            Subject.objects.create(name=name, description=description, price=price)
+            messages.success(request, f"Subject '{name}' added successfully.")
+        else:
+            messages.error(request, "Subject name and price are required.")
+            
+    return redirect('admin_dashboard')
+
+@login_required
 def update_subject_price(request, subject_id):
     if request.user.role != 'admin':
         return redirect('landing_page')
