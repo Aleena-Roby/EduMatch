@@ -8,7 +8,7 @@ from datetime import datetime
 @login_required
 def student_dashboard(request):
     if request.user.role != 'student':
-        return redirect('landing_page')
+        return redirect('dashboard')
     bookings = Booking.objects.filter(student=request.user).order_by('-session_date')
     return render(request, 'student_dashboard.html', {'bookings': bookings})
 

@@ -55,12 +55,15 @@ def dashboard_redirect(request):
         return redirect('tutor_dashboard')
     elif request.user.role == 'student':
         return redirect('student_dashboard')
-    return redirect('landing_page')
+    
+    # If authenticated but no role assigned, just show the landing page
+    # to avoid redirection loops between landing_page and dashboard_redirect
+    return render(request, 'index.html')
 
 @login_required
 def admin_dashboard(request):
-    if request.user.role != 'admin':
-        return redirect('landing_page')
+    if not (request.user.is_superuser or request.user.role == 'admin'):
+        return redirect('dashboard')
 
     tutors = TutorProfile.objects.all().order_by('-user__date_joined')
     student_profiles = StudentProfile.objects.select_related('user').order_by('-user__date_joined')

@@ -7,7 +7,7 @@ from django.contrib import messages
 @login_required
 def tutor_dashboard(request):
     if request.user.role != 'tutor':
-        return redirect('landing_page')
+        return redirect('dashboard')
     bookings = Booking.objects.filter(tutor=request.user).order_by('-created_at')
     return render(request, 'tutor_dashboard.html', {'bookings': bookings})
 
