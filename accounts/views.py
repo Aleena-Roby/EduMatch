@@ -49,12 +49,12 @@ def login_view(request):
 
 @login_required
 def dashboard_redirect(request):
-    if request.user.role == 'student':
-        return redirect('student_dashboard')
+    if request.user.is_superuser or request.user.role == 'admin':
+        return redirect('admin_dashboard')
     elif request.user.role == 'tutor':
         return redirect('tutor_dashboard')
-    elif request.user.role == 'admin':
-        return redirect('admin_dashboard')
+    elif request.user.role == 'student':
+        return redirect('student_dashboard')
     return redirect('landing_page')
 
 @login_required
