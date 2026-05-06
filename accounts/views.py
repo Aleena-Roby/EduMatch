@@ -109,18 +109,22 @@ def toggle_fee(request, student_id):
 
 @login_required
 def add_subject(request):
-    if request.user.role != 'admin':
-        return redirect('landing_page')
+    if not (request.user.is_superuser or request.user.role == 'admin'):
+        return redirect('dashboard')
     
     if request.method == 'POST':
         from tutor.models import Subject
         name = request.POST.get('name')
         description = request.POST.get('description')
-        price = request.POST.get('price')
+        price_str = request.POST.get('price')
         
-        if name and price:
-            Subject.objects.create(name=name, description=description, price=price)
-            messages.success(request, f"Subject '{name}' added successfully.")
+        if name and price_str:
+            try:
+                price = float(price_str)
+                Subject.objects.create(name=name, description=description, price=price)
+                messages.success(request, f"Successfully added '{name}' to the marketplace.")
+            except ValueError:
+                messages.error(request, "Invalid price format. Please enter a number.")
         else:
             messages.error(request, "Subject name and price are required.")
             
@@ -191,8 +195,8 @@ def reset_password(request):
 
 @login_required
 def reject_tutor(request, tutor_id):
-    if request.user.role != 'admin':
-        return redirect('landing_page')
+    if not (request.user.is_superuser or request.user.role == 'admin'):
+        return redirect('dashboard')
         
     tutor = get_object_or_404(TutorProfile, id=tutor_id)
     tutor.is_approved = False
@@ -208,11 +212,15 @@ def reject_tutor(request, tutor_id):
 
 @login_required
 def delete_tutor(request, tutor_id):
-    if request.user.role != 'admin':
-        return redirect('landing_page')
+    if not (request.user.is_superuser or request.user.role == 'admin'):
+        return redirect('dashboard')
         
     tutor_profile = get_object_or_404(TutorProfile, id=tutor_id)
-    username = tutor_profile.user.username
-    tutor_profile.user.delete()
-    messages.error(request, f"Tutor {username} removed.")
+    user_to_delete = tutor_profile.user
+    username = user_to_delete.username
+    
+    # Deleting the user will CASCADE delete the TutorProfile and all their Bookings
+    user_to_delete.delete()
+    
+    messages.success(request, f"Tutor {username}, their profile, and all associated requests have been permanently removed.")
     return redirect('admin_dashboard')
